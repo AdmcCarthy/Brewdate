@@ -1,5 +1,5 @@
 ---
-title: "beer"
+title: "Spring Kølsch"
 output:
   html_document:
     highlight: tango
@@ -51,6 +51,10 @@ temp_xts <- xts(df$TempC, order.by = df$DateTime)
 temp_sma_xts <- xts(df$TempC_sma, order.by = df$DateTime)
 sg_xts <- xts(df$SG, order.by = df$DateTime)
 ```
+
+## Brew schedule
+
+A quick fermentation followed by a long lagering period.
 
 ```{r plot_functions, echo=FALSE}
 graphstyle <- function(fig){
