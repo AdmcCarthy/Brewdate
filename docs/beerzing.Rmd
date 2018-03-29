@@ -1,0 +1,166 @@
+---
+title: "beer"
+output:
+  html_document:
+    theme: united
+    highlight: tango
+    toc: TRUE
+    toc_float: true
+---
+
+## Introduction
+
+This is..
+
+## Set up
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, packages}
+library(ggplot2)
+library(ggthemes)
+library(scales)
+library(extRemes)
+library(sm)
+library(gridExtra)
+library(GGally)
+# Currently used
+library(dygraphs)
+library(xts)
+library(weathermetrics)
+library(TTR)
+```
+
+```{r get_data, echo=FALSE}
+googlesheet <- "https://docs.google.com/spreadsheets/d/e/2PACX-1vSpzeMxrRBuTp18pYVro9t13JVyxNPAWZwdYaK8n4s5A-AfMBXMAG6GH37j-ri2LTEeaEDvpUhWPNuT/pub?gid=0&single=true&output=csv"
+
+df <- read.csv(url(googlesheet))
+```
+
+```{r dataProcessing, echo=FALSE}
+# Convert to a usable date time format
+df$DateTime <- as.POSIXct(df$Timestamp, 
+                          format = "%m/%d/%Y %H:%M:%S",
+                          tz = "PDT")
+
+# data is recorded in farenheit, using weathermetrics library
+df$TempC <- fahrenheit.to.celsius(df$Temp, round = 2)
+
+df$TempC_sma <- SMA(df$TempC, n = 10)
+
+# Turn it into an xts object combinging a variable and date time
+#
+# This will be used for time series analysis plots
+temp_xts <- xts(df$TempC, order.by = df$DateTime)
+temp_sma_xts <- xts(df$TempC_sma, order.by = df$DateTime)
+sg_xts <- xts(df$SG, order.by = df$DateTime)
+```
+
+```{r plot_functions, echo=FALSE}
+graphstyle <- function(fig){
+  
+  fig %>%
+  dyOptions(colors = RColorBrewer::brewer.pal(3, "Set2")) %>%
+  # Axis options
+  dyAxis("y", 
+         label = "Temp (C)", 
+         valueRange = c(0, 30)) %>%
+    dyAxis("x", 
+         label = "Time") %>%
+    dyOptions(axisLineWidth = 1.5,
+          drawGrid = FALSE,
+          axisLineColor = "#D3D3D3") %>%
+    dyRangeSelector(height = 50) %>%
+  # Legend options
+  dyLegend(show = "always", 
+           hideOnMouseOut = FALSE,
+           width = 400)
+}
+
+graphstyle2 <- function(fig){
+  
+  fig %>%
+  dyOptions(colors = RColorBrewer::brewer.pal(3, "Set2")) %>%
+  # Axis options
+  dyAxis("y", 
+         label = "Specific Gravity", 
+         valueRange = c(1.000, 1.070)) %>%
+    dyAxis("x",
+         label = "Time") %>%
+    dyOptions(axisLineWidth = 1.5,
+          drawGrid = FALSE,
+          axisLineColor = "#D3D3D3") %>%
+    dyRangeSelector(height = 20) %>%
+  # Legend options
+  dyLegend(show = "always", 
+           hideOnMouseOut = FALSE,
+           width = 400)
+}
+
+annotationstyle <- function(fig){
+  
+  fig %>%  
+    # Set the responsive behaviour
+    dyHighlight(highlightCircleSize = 3, 
+                highlightSeriesBackgroundAlpha = 0.2) %>%
+    # Add shading to highlight different stages in the process
+    dyShading(from = "2018-03-25", to = "2018-03-29", color = "#FFFF99") %>%
+    dyShading(from = "2018-03-29", to = "2018-05-15", color = "#ADD8E6") %>%
+    dyShading(from = "2018-05-15", to = "2018-06-15", color = "#8FBC8F") %>%
+    # Add events to highlight when something occured
+    dyEvent("2018-03-29", "Reduce Temp", labelLoc = "bottom") %>%
+    dyEvent("2018-05-15", "Conditioning", labelLoc = "bottom") %>%
+    dyEvent("2018-06-15", "Drinking Time", labelLoc = "bottom") %>%
+    dyEvent("2018-03-25", "Brew Day", labelLoc = "top") %>%
+    dyEvent("2018-03-25", "Primary Fermentation", labelLoc = "bottom")
+}
+```
+
+```{r main_plot, echo=FALSE, fig.width=10, fig.height=3}
+dataset <- cbind(temp_xts, temp_sma_xts)
+dataset2 <- cbind(sg_xts)
+dateWindow <- c("2018-03-23", "2018-06-20")
+
+plt1 <- dygraph(dataset,
+        main = "Temperature Profile",
+        group = "beer") %>%
+  dyRangeSelector(dateWindow = dateWindow)
+
+plt2 <- dygraph(dataset,
+        main = "Temperature Profile Anotated",
+        group = "beer") %>% 
+  dyRangeSelector(dateWindow = dateWindow)  %>%
+  dyOptions(stepPlot = TRUE) %>%
+
+  # Series options
+  dySeries("..1", 
+           strokeWidth = 2, 
+           drawPoints = TRUE) %>%
+  dySeries("..2", 
+           strokeWidth = 0.5, 
+           strokePattern = "dashed")  %>%
+
+  # Lines to highlight values
+  dyLimit(10, color = "blue")
+
+plt3 <- dygraph(dataset2,
+        main = "SG Profile",
+        group = "beer") %>%
+  dyRangeSelector(dateWindow = dateWindow)
+
+plt1 <- graphstyle(plt1)
+plt1 <- annotationstyle(plt1)
+plt1
+
+plt2 <- graphstyle(plt2)
+plt2 <- annotationstyle(plt2)
+plt2
+
+plt3 <- graphstyle2(plt3)
+plt3 <- annotationstyle(plt3)
+plt3
+
+```
+
+```{r pressure, echo=FALSE}
+plot(df$SG, df$TempC)
+```
+
