@@ -1,8 +1,10 @@
 name: "Brewdate"
+output_dir: "."
 navbar:
   title: "Brewdate"
   left:
     - text: "Home"
+      icon: fa-home
       href: index.html
     - text: "Kølsch"
       href: Spring_Kolsch.html
