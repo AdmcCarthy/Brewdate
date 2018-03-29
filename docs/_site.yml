@@ -1,6 +1,6 @@
-name: "my-website"
+name: "Brewdate"
 navbar:
-  title: "My Website"
+  title: "Brewdate"
   left:
     - text: "Home"
       href: index.html
@@ -8,5 +8,5 @@ navbar:
       href: Spring_Kolsch.html
 output:
   html_document:
-    theme: cosmo
+    theme: united
     highlight: textmate
