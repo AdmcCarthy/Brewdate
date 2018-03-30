@@ -7,20 +7,33 @@ output:
     toc_float: true
 ---
 
-## Introduction
+## Why make this?
 
 An attempt at a Kølsch style but with some twists
-and a bit more hoppiness.
+and a bit more hoppiness. Based on a recipe from Voakes.
+
+Aiming to be a light refreshing summer drink.
+
+
+## Brewing approach
+
+After tasting a 
+few Kølsch they range in taste with some of the german ones being very dry
+and a bit bland for my taste. This recipe looks good to add a bit
+more flavour and aroma through hops, this still has to be balanced
+though. Trying other Kølsch styles (not brewed in Cologne) some have more of
+a hoppy flavourful aroma and are not as dry.
+
+Using a two stage mash both lasting for 45 minutes with the intention
+to get the crisp dry characteristics from the 63 degree mash and then
+bring it up to 67 to give it a bit more body.
+
+The hops are mainly left until late to give a bit more aroma with a focus
+on citrus flavours over the traditional spicy and earty tones. Not traditional
+but more to my taste!
 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, packages}
-library(ggplot2)
-library(ggthemes)
-library(scales)
-library(extRemes)
-library(sm)
-library(gridExtra)
-library(GGally)
 # Currently used
 library(dygraphs)
 library(xts)
@@ -52,10 +65,6 @@ temp_xts <- xts(df$TempC, order.by = df$DateTime)
 temp_sma_xts <- xts(df$TempC_sma, order.by = df$DateTime)
 sg_xts <- xts(df$SG, order.by = df$DateTime)
 ```
-
-## Brew schedule
-
-A quick fermentation followed by a long lagering period.
 
 ```{r plot_functions, echo=FALSE}
 graphstyle <- function(fig){
@@ -117,53 +126,63 @@ annotationstyle <- function(fig){
 }
 ```
 
-```{r main_plot, echo=FALSE, fig.width=8, fig.height=3}
-dataset <- cbind(temp_xts, temp_sma_xts)
+
+## Fermentation and conditioning
+
+A quick fermentation followed by a long lagering period.
+
+A one liter yeast starter was created, aeration to wort was added just by
+letting the wort drop from high into the fermenter bucket. The fermentation
+was active after a few hours and bubbling happily the morning after brew day.
+
+The main fermenetation was finished within around four days.
+
+Tilt hydrometer sensor had not arrived so no data collected until
+it had already gotten close to final gravity.
+
+```{r main_plot, echo=FALSE, fig.width=6, fig.height=2}
+dataset <- cbind(temp_xts)
 dataset2 <- cbind(sg_xts)
 dateWindow <- c("2018-03-23", "2018-06-20")
 
-plt1 <- dygraph(dataset,
+schedule_t <- dygraph(dataset,
         main = "Temperature Profile",
         group = "beer") %>%
   dyRangeSelector(dateWindow = dateWindow)
 
-plt2 <- dygraph(dataset,
-        main = "Temperature Profile Anotated",
-        group = "beer") %>% 
-  dyRangeSelector(dateWindow = dateWindow)  %>%
-  dyOptions(stepPlot = TRUE) %>%
 
-  # Series options
-  dySeries("..1", 
-           strokeWidth = 2, 
-           drawPoints = TRUE) %>%
-  dySeries("..2", 
-           strokeWidth = 0.5, 
-           strokePattern = "dashed")  %>%
 
-  # Lines to highlight values
-  dyLimit(10, color = "blue")
-
-plt3 <- dygraph(dataset2,
+schedule_sg <- dygraph(dataset2,
         main = "SG Profile",
         group = "beer") %>%
   dyRangeSelector(dateWindow = dateWindow)
 
-plt1 <- graphstyle(plt1)
-plt1 <- annotationstyle(plt1)
-plt1
+schedule_t <- graphstyle(schedule_t)
+schedule_t <- annotationstyle(schedule_t)
+schedule_t
 
-plt2 <- graphstyle(plt2)
-plt2 <- annotationstyle(plt2)
-plt2
-
-plt3 <- graphstyle2(plt3)
-plt3 <- annotationstyle(plt3)
-plt3
+schedule_sg <- graphstyle2(schedule_sg)
+schedule_sg <- annotationstyle(schedule_sg)
+schedule_sg
 
 ```
 
-```{r pressure, echo=FALSE}
-plot(df$SG, df$TempC)
+Looking closer at the temperature profile shows an attempt to lager this batch.
+The temperature was reduced by moving the fermenter into a cold cellar.
+
+```{r fermentation_profile, echo=FALSE, fig.width=6, fig.height=1}
+dateWindow <- c("2018-03-28", "2018-03-30")
+
+fermentation_temp <- dygraph(dataset,
+        main = "Temperature Profile Anotated") %>% 
+  dyRangeSelector(dateWindow = dateWindow)  %>%
+  dyOptions(stepPlot = TRUE) %>%
+
+  # Lines to highlight values
+  dyLimit(10, color = "blue")
+
+fermentation_temp <- graphstyle(fermentation_temp)
+fermentation_temp <- annotationstyle(fermentation_temp)
+fermentation_temp
 ```
 
