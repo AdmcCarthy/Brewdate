@@ -75,14 +75,11 @@ graphstyle <- function(fig){
   dyAxis("y", 
          label = "Temp (C)", 
          valueRange = c(0, 30)) %>%
-    dyAxis("x", 
-         label = "Time") %>%
     dyOptions(axisLineWidth = 1.5,
           drawGrid = FALSE,
           axisLineColor = "#D3D3D3") %>%
-    dyRangeSelector(height = 50) %>%
   # Legend options
-  dyLegend(show = "always", 
+  dyLegend(show = "follow", 
            hideOnMouseOut = FALSE,
            width = 400)
 }
@@ -95,14 +92,11 @@ graphstyle2 <- function(fig){
   dyAxis("y", 
          label = "Specific Gravity", 
          valueRange = c(1.000, 1.070)) %>%
-    dyAxis("x",
-         label = "Time") %>%
     dyOptions(axisLineWidth = 1.5,
           drawGrid = FALSE,
           axisLineColor = "#D3D3D3") %>%
-    dyRangeSelector(height = 20) %>%
   # Legend options
-  dyLegend(show = "always", 
+  dyLegend(show = "follow",, 
            hideOnMouseOut = FALSE,
            width = 400)
 }
@@ -118,7 +112,7 @@ annotationstyle <- function(fig){
     dyShading(from = "2018-03-29", to = "2018-05-15", color = "#ADD8E6") %>%
     dyShading(from = "2018-05-15", to = "2018-06-15", color = "#8FBC8F") %>%
     # Add events to highlight when something occured
-    dyEvent("2018-03-29", "Recing Temperature", labelLoc = "bottom") %>%
+    dyEvent("2018-03-29", "Reducing Temperature", labelLoc = "bottom") %>%
     dyEvent("2018-05-15", "Conditioning", labelLoc = "bottom") %>%
     dyEvent("2018-06-15", "Drinking Time", labelLoc = "bottom") %>%
     dyEvent("2018-03-25", "Brew Day", labelLoc = "top") %>%
@@ -140,27 +134,37 @@ The main fermenetation was finished within around four days.
 Tilt hydrometer sensor had not arrived so no data collected until
 it had already gotten close to final gravity.
 
-```{r main_plot, echo=FALSE, fig.width=6, fig.height=2}
+```{r main_plot, echo=FALSE, fig.width=8, fig.height=3}
 dataset <- cbind(temp_xts)
 dataset2 <- cbind(sg_xts)
 dateWindow <- c("2018-03-23", "2018-06-20")
 
 schedule_t <- dygraph(dataset,
-        main = "Temperature Profile",
+        main = "Temperature Schedule",
         group = "beer") %>%
-  dyRangeSelector(dateWindow = dateWindow)
+  dyAxis("x",
+         valueRange = dateWindow,
+         label = "Time") %>%
+  dyRangeSelector(dateWindow = dateWindow)  %>%
+  dyOptions(stepPlot = TRUE) 
 
 
 
 schedule_sg <- dygraph(dataset2,
-        main = "SG Profile",
+        main = "SG Schedule",
         group = "beer") %>%
-  dyRangeSelector(dateWindow = dateWindow)
+  dyAxis("x",
+         valueRange = dateWindow,
+         label = "Time") %>%
+  dyRangeSelector(dateWindow = dateWindow)  %>%
+  dyOptions(stepPlot = TRUE) 
 
+#schedule_t <- graphstyle(schedule_t)
 schedule_t <- graphstyle(schedule_t)
 schedule_t <- annotationstyle(schedule_t)
 schedule_t
 
+#schedule_sg <- graphstyle2(schedule_sg)
 schedule_sg <- graphstyle2(schedule_sg)
 schedule_sg <- annotationstyle(schedule_sg)
 schedule_sg
@@ -170,19 +174,18 @@ schedule_sg
 Looking closer at the temperature profile shows an attempt to lager this batch.
 The temperature was reduced by moving the fermenter into a cold cellar.
 
-```{r fermentation_profile, echo=FALSE, fig.width=6, fig.height=1}
-dateWindow <- c("2018-03-28", "2018-03-30")
+```{r fermentation_profile, echo=FALSE, fig.width=9, fig.height=3}
+dateWindow <- c("2018-03-28", "2018-04-05")
 
 fermentation_temp <- dygraph(dataset,
         main = "Temperature Profile Anotated") %>% 
   dyRangeSelector(dateWindow = dateWindow)  %>%
   dyOptions(stepPlot = TRUE) %>%
-
+  dyRangeSelector(height = 20) %>%
   # Lines to highlight values
-  dyLimit(10, color = "blue")
+  dyLimit(10, color = "blue") 
 
 fermentation_temp <- graphstyle(fermentation_temp)
-fermentation_temp <- annotationstyle(fermentation_temp)
 fermentation_temp
 ```
 
